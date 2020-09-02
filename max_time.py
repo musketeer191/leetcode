@@ -1,19 +1,24 @@
 class Solution:
 
-    def make_max_time_from_remain_digits(self, A):
-        # no constraint for 2nd digit, so it should be the largest possible value, as long as it did not take away all valid values for 3rd digit
-        _2nd_digit = max(A)
-        print('2nd digit:', _2nd_digit)
-        A.pop(A.index(_2nd_digit))
-
-        # as mins < 60, 3rd digit must be < 6
+    def find_max_time_with_1st_digit_less_than2(self, A):
         try:
-            _3rd_digit = max([x for x in A if x < 6])
-            print('3rd digit:', _3rd_digit)
-            A.pop(A.index(_3rd_digit))
-            _4th_digit = A[0]
-            print('4th digit:', _4th_digit)
-            return str(_2nd_digit) + ':' + str(_3rd_digit) + str(_4th_digit)
+            first_digit = max([x for x in A if x < 2])
+            remains = [] + A
+            remains.pop(remains.index(first_digit))
+            # no constraint for 2nd digit, so it should be the largest possible value, as long as it did not take away all valid values for 3rd digit
+            _2nd_digit = max(remains)
+            # print('2nd digit:', _2nd_digit)
+            remains.pop(remains.index(_2nd_digit))
+            # as mins < 60, 3rd digit must be < 6
+            try:
+                _3rd_digit = max([x1 for x1 in remains if x1 < 6])
+                # print('3rd digit:', _3rd_digit)
+                remains.pop(remains.index(_3rd_digit))
+                _4th_digit = remains[0]
+                # print('4th digit:', _4th_digit)
+                return str(first_digit) + str(_2nd_digit) + ':' + str(_3rd_digit) + str(_4th_digit)
+            except ValueError:
+                return ''
         except ValueError:
             return ''
 
@@ -22,21 +27,20 @@ class Solution:
 
         # hours < 24, mins < 60; so first digit must be <= 2 and 3rd digit must be < 6
 
-        _1st_digit_pos = [x for x in A if x <= 2]
-        if not _1st_digit_pos:
-            return ''
-        first_digit = max(_1st_digit_pos)
-        print('first_digit:', first_digit)
+        if 2 not in A:
+            try:
+                return self.find_max_time_with_1st_digit_less_than2(A)
+            except ValueError:
+                return ''
 
-        if first_digit < 2:
-            remains = [] + A
-            remains.pop(remains.index(first_digit))
-            max_from_remains = self.make_max_time_from_remain_digits(remains)
-            if max_from_remains != '':
-                return str(first_digit) + max_from_remains
-            return ''
+        print('Find max time among cases with first digit < 2')
+        max1 = self.find_max_time_with_1st_digit_less_than2(A)
 
-        # 1st digit is 2, then a valid time must have its 2nd digit < 4. If no such valid time exist, need to fall back to case when 1st digit < 2.
+        print('If there are valid cases with first digit = 2, Find Max time among them')
+        first_digit = 2
+        A.pop(A.index(first_digit))
+        # A valid time must have its 2nd digit < 4 and 3rd digit < 6.
+        # If no such valid time exist, fall back to case when 1st digit < 2.
         try:
             _2nd_digit = max([x for x in A if x < 4])
             print('2nd digit:', _2nd_digit)
@@ -47,27 +51,18 @@ class Solution:
                 A.pop(A.index(_3rd_digit))
                 _4th_digit = A[0]
                 print('4th digit:', _4th_digit)
-                return str(first_digit) + str(_2nd_digit) + ':' + str(_3rd_digit) + str(_4th_digit)
+                max2 = str(first_digit) + str(_2nd_digit) + ':' + str(_3rd_digit) + str(_4th_digit)
+                return max2
             except ValueError:
-                print('cannot find any valid value for 3rd digit')
-                try:    # cases when first digit < 2
-                    first_digit = max([x for x in A if x < 2])
-                    max_from_remains = self.make_max_time_from_remain_digits(A)
-                    if max_from_remains != '':
-                        return str(first_digit) + max_from_remains
-                    return ''
-                except ValueError:
-                    return ''
+                print('\tno valid cases as no valid value for 3rd digit')
+                print('so the max time possible is: ', max1)
+                return max1
         except ValueError:
-            try:    # cases when first digit < 2
-                first_digit = max([x for x in A if x < 2])
-                max_from_remains = self.make_max_time_from_remain_digits(A)
-                if max_from_remains != '':
-                    return str(first_digit) + max_from_remains
-                return ''
-            except ValueError:
-                return ''
+            print('\tno valid cases as no valid value for 2nd digit')
+            print('so the max time possible is: ', max1)
+            return max1
+
 
 if __name__ == '__main__':
     sol = Solution()
-    sol.largestTimeFromDigits([0,2,6,6])
+    sol.largestTimeFromDigits([0, 2, 6, 6])
