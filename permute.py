@@ -1,8 +1,3 @@
-import os
-import pandas as pd
-import numpy as np
-
-
 def build_perms_from_index_perms(ls, index_perms):
     perms = []
     for p in index_perms:
