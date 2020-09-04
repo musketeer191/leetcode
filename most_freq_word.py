@@ -1,3 +1,4 @@
+import re
 import collections
 from string import punctuation
 from bisect import bisect_left
@@ -22,13 +23,11 @@ class Solution:
         # complexity: for each word need to search for it in banned list, so log(len(banned)) if banned is sorted, then look up its count to increase, which is O(1) if the counts are stored in a hashmap. So final complexity is len(words) * log(len(banned))
 
         # lower case
-        exclude = set(punctuation)
         s = paragraph.lower()
         # strip punctuations & split into words
-        # edge case: the string has words delimited by comma, or some punctuation
-        # todo: handle edge case via re.split()
-        s = ''.join([ch for ch in s if ch not in exclude])
-        words = s.split(' ')
+        # note edge case: the string has words delimited by comma, or some punctuation
+        regex = re.compile('[%s]' % re.escape(punctuation))
+        words = regex.sub(' ', s).split()
 
         banned = sorted(banned)
         count = collections.Counter()
