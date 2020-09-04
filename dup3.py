@@ -1,4 +1,3 @@
-from bisect import bisect
 class Solution:
     def found_pair_not_far(self, sorted_a, t):
         # only need to check consecutive pairs
