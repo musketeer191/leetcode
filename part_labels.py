@@ -1,5 +1,5 @@
 # clarify: parts are contiguous?
-import collections
+# import collections
 
 
 class Solution:
@@ -9,6 +9,37 @@ class Solution:
             return len(S) - 1 - S[::-1].index(ch)
         except ValueError:
             return -1
+
+    def find_distinct_chars(self, s):
+        count = collections.Counter(s)
+        return count.keys()
+
+    def extend_till_cover_all_occurence(self, part, S):
+        # print('init part:', part)
+
+        q = collections.deque(self.find_distinct_chars(part))
+        # print('init queue:', q)
+        end = len(part)
+
+        while q:
+            # each time, process the whole group in queue by finding the furthest extension possible
+            last_occurs = [self.find_last_occur(ch, S) for ch in q]
+            idx = max(last_occurs) + 1  # furthest extension possible
+            if idx > end:
+                to_add = S[end: idx]
+                part += to_add
+                # print('\t updated part:', part)
+                # update end of part
+                end = idx
+                # update queue: empty old group and add new group from to_add (if any)
+                q.clear()
+                for ch in to_add:
+                    if ch not in q:
+                        q.append(ch)
+                # print('\t updated queue:', q)
+            else:
+                q.clear()
+        return part
 
     def partitionLabels(self, S: str) -> List[int]:
         # partition into as many as parts possible s.t. parts have no common letters
@@ -28,36 +59,8 @@ class Solution:
             return [1] + self.partitionLabels(S[1:])
         # else, s0 not unique
         part0 = S[:(i + 1)]
-        print('init part0:', part0, 'end at idx:', i)
 
         # extend part0 until it covers occur ranges of all its letters
         part0 = self.extend_till_cover_all_occurence(part0, S)
 
-        # last_occurs = [self.find_last_occur(ch, S) for ch in uniq_chars]
-        # to_extend = max(last_occurs) + 1
-        # part0 = S[: to_extend]
-
         return [len(part0)] + self.partitionLabels(S[len(part0):])
-
-    def extend_till_cover_all_occurence(self, part, S):
-        q = collections.deque(part)
-        q.popleft()
-        print('init queue:', q)
-        end = len(part)
-        while q:
-            ch = q.popleft()
-            idx = self.find_last_occur(ch, S)
-            if idx >= end:
-                to_add = S[end: idx + 1]
-                print('\t substr to add:', to_add)
-                part += to_add
-                print('\t updated part:', part)
-                end = idx + 1  # update end of part0
-                # update queue: add new chars in to_add (if any)
-                for ch in to_add:
-                    if ch not in q:
-                        q.append(ch)
-                print('\t updated queue:', q)
-        print('part:', part)
-        return part
-
