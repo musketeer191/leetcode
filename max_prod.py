@@ -1,59 +1,47 @@
 class Solution:
-    def find_last_zero(self, ls):
-        try:
-            return len(ls) - 1 - ls[::-1].index(0)
-        except ValueError:
-            return -1
+    from functools import reduce
+    def product(self, nums):
+        return reduce(lambda x, y: x * y, nums)
+
+    def find_first_neg(self, nums):
+        # given a list of numbers with at least 1 neg, return the first neg
+        for i in range(len(nums)):
+            if nums[i] < 0:
+                return i
+
+    def find_last_neg(self, nums):
+        # given a list of numbers with at least 1 neg, return the last neg
+        return len(nums) - 1 - self.find_first_neg(nums[::-1])
 
     def maxProduct(self, nums: List[int]) -> int:
-        # sol:
-        # suppose that we already know the max product mp from subarrays up to index k-1, now we add item a[k]. This will create new products a[k]...a[i], which may be larger than mp. So we need to compare the new products with each other and with mp to get the new max. Repeat the process until finish.
-        # complexity: for each k, need to do k+1 multiplications => sum_k(k+1) = O(n^2)
-        # mp = -float('inf')
-        # for k in range(len(nums)):
-        #     p = 1
-        #     for i in range(k, -1, -1):
-        #         p *= nums[i]
-        #         if p > mp:
-        #             mp = p
-        # return mp
+        # if nums[i]=0, then the products of subarrays containing nums[i] will be 0, so results will be max(maxProduct(nums[:i]), maxProduct(nums[i+1:]), 0)
+        # repeat this process let us reach subarrays with no 0, so the products will be non-zero
+        # for such an array a[1:k] of integers,
+        # if a[1]...a[k] > 0: it will be the max product, because
+        # a[1]...a[k] = abs(a[1]...a[k]) >= abs(a[i]...a[j]) >= a[i]...a[j]
+        # more general if
+        # else, a[1]...a[k] < 0, then there must be an odd numbers of neg factors, say 2m+1, if the first neg number occurs at index i_f and the last neg numbers occur at i_l then the two longest (thus largest) pos products are prod(a[:i_l]) and prod(a[i_f + 1:]) as each contains 2m neg factors
+        # print('nums:', nums)
+        if not nums:
+            return float('-inf')
+        # else
+        if 0 in nums:
+            i = nums.index(0)
+            return max(0, self.maxProduct(nums[:i]), self.maxProduct(nums[i + 1:]))
+        # else
+        prod = self.product(nums)
+        if prod > 0:
+            return prod
+        # else, prod < 0
+        first_neg = self.find_first_neg(nums)
+        last_neg = self.find_last_neg(nums)
+        last_idx = len(nums) - 1
+        if (last_neg > 0) and (first_neg + 1 <= last_idx):
+            return max(self.product(nums[:last_neg]), self.product(nums[first_neg + 1:]))
+        if last_neg == 0:
+            if len(nums) > 1:
+                return self.product(nums[1:])
+            return nums[0]
+        if first_neg == last_idx:
+            return self.product(nums[:first_neg])
 
-        # opt sol:
-        # Remark: if a[1]...a[k] > 0 then a[1]...a[k] is the max of new products, and we only need to compare its against current max.
-        # if a[1]...a[k] > 0 then:
-        # all a[i] != 0; thus abs(a[j]) >= 1
-        # a[1]...a[k] = abs(a[1]...a[k]) >= abs(a[i]...a[k]) >= a[i]...a[k], for all i in [1,k].
-
-        # the var to keep track of products a[1]...a[k]
-        prod = 1
-        mp = -float('inf')
-        for k in range(len(nums)):
-            prod *= nums[k]
-            if nums[k] == 0:
-                if mp < 0:
-                    mp = 0
-            else:  # nums[k] != 0
-                if prod > 0:
-                    if prod > mp:
-                        mp = prod
-                elif prod == 0:
-                    # a zero factor will make whole product zero
-                    # going backward from a[k], find the first zero
-                    for j in range(k, -1, -1):
-                        if nums[j] == 0:
-                            break
-                            # a[i]...a[k]=0, for all i <= j, only to compute a[i]...a[k] for i >j
-                    p = 1
-                    for i in range(k, j, -1):
-                        p *= nums[i]
-                        if p > mp:
-                            mp = p
-                    if 0 > mp:
-                        mp = 0
-                else:
-                    p = 1
-                    for i in range(k, -1, -1):
-                        p *= nums[i]
-                        if p > mp:
-                            mp = p
-        return mp
